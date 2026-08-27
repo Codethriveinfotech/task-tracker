@@ -1,5 +1,5 @@
 # Stage 1: Build the React frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
@@ -9,7 +9,7 @@ ENV VITE_APPS_SCRIPT_URL=/api
 RUN npm run build
 
 # Stage 2: Setup Node Express backend with built static files
-FROM node:18-alpine
+FROM node:22-alpine
 WORKDIR /app
 COPY backend/package*.json ./backend/
 RUN npm install --prefix backend
