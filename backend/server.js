@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const db = require('./db');
 
 dotenv.config();
@@ -11,6 +12,9 @@ const GOOGLE_SHEET_URL = process.env.GOOGLE_SHEET_URL || "";
 
 app.use(cors());
 app.use(express.json({ type: ['application/json', 'text/plain'] }));
+
+// Serve built frontend assets
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 /**
  * Silently sync a report to Google Sheets in the background (non-blocking).
@@ -353,6 +357,11 @@ app.post('/api', (appReq, appRes) => {
 
     return appRes.json({ success: false, error: "Unsupported operation action." });
   });
+});
+
+// Fallback for React SPA Routing - serve index.html for all non-API paths
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 app.listen(PORT, () => {
