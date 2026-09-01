@@ -88,33 +88,26 @@ app.post('/api', (appReq, appRes) => {
 
   // Action: registerEmployee (public, no auth required)
   if (action === "registerEmployee") {
-    const { name, department, password } = payload;
-    if (!name || !department || !password) {
-      return appRes.json({ success: false, error: "Name, Department, and Password are required." });
+    const { id, name, department, password } = payload;
+    if (!id || !name || !department || !password) {
+      return appRes.json({ success: false, error: "Employee ID, Name, Department, and Password are required." });
     }
 
-    // Auto-generate next sequential EMP ID
-    db.all("SELECT id FROM users WHERE id LIKE 'EMP%' ORDER BY id ASC", [], (err, rows) => {
-      if (err) return appRes.json({ success: false, error: "Database error generating employee ID." });
+    const cleanId = id.trim().toUpperCase();
 
-      let nextNum = 1;
-      if (rows.length > 0) {
-        const nums = rows
-          .map(r => parseInt(r.id.replace(/^EMP0*/i, ""), 10))
-          .filter(n => !isNaN(n));
-        if (nums.length > 0) nextNum = Math.max(...nums) + 1;
-      }
-      const newId = `EMP${String(nextNum).padStart(3, "0")}`;
-
-      db.run(
-        "INSERT INTO users (id, name, department, role, password) VALUES (?, ?, ?, ?, ?)",
-        [newId, name.trim(), department.trim(), "EMPLOYEE", password.trim()],
-        (err) => {
-          if (err) return appRes.json({ success: false, error: "Database error while creating account." });
-          return appRes.json({ success: true, message: "Account created successfully! You can now sign in.", id: newId });
+    db.run(
+      "INSERT INTO users (id, name, department, role, password) VALUES (?, ?, ?, ?, ?)",
+      [cleanId, name.trim(), department.trim(), "EMPLOYEE", password.trim()],
+      (err) => {
+        if (err) {
+          if (err.message && err.message.includes("UNIQUE")) {
+            return appRes.json({ success: false, error: `Employee ID '${cleanId}' already exists. Please choose a different ID.` });
+          }
+          return appRes.json({ success: false, error: "Database error while creating account." });
         }
-      );
-    });
+        return appRes.json({ success: true, message: "Account created successfully! You can now sign in.", id: cleanId });
+      }
+    );
     return;
   }
 

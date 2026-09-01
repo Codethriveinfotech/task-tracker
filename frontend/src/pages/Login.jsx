@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { apiService } from "../services/apiService";
 import {
   Lock, User, Shield, Activity, ArrowRight,
-  UserPlus, ChevronLeft, CheckCircle2
+  UserPlus, ChevronLeft, CheckCircle2, Cpu, Sparkles, Terminal
 } from "lucide-react";
 import { APP_CONFIG } from "../config/appConfig";
 
@@ -19,6 +19,7 @@ export function Login() {
   const [error, setError] = useState("");
 
   // Register state
+  const [regEmpId, setRegEmpId] = useState("");
   const [regName, setRegName] = useState("");
   const [regDept, setRegDept] = useState("IT");
   const [regPass, setRegPass] = useState("");
@@ -41,7 +42,7 @@ export function Login() {
   const switchToRegister = () => {
     setMode("register");
     setError("");
-    setRegName(""); setRegPass(""); setRegPassConfirm(""); setRegSuccess(""); setGeneratedId("");
+    setRegEmpId(""); setRegName(""); setRegPass(""); setRegPassConfirm(""); setRegSuccess(""); setGeneratedId("");
   };
 
   const switchToLogin = () => {
@@ -68,8 +69,8 @@ export function Login() {
     setError("");
     setRegSuccess("");
 
-    if (!regName.trim() || !regPass.trim()) {
-      setError("Name and password are required.");
+    if (!regEmpId.trim() || !regName.trim() || !regPass.trim()) {
+      setError("Employee ID, Name, and Password are required.");
       return;
     }
     if (regPass !== regPassConfirm) {
@@ -84,14 +85,15 @@ export function Login() {
     setLoading(true);
     try {
       const res = await apiService.registerEmployee({
+        id: regEmpId.trim(),
         name: regName.trim(),
         department: regDept,
         password: regPass.trim()
       });
       if (res.success) {
         setRegSuccess(res.message || "Account created!");
-        setGeneratedId(res.id || "");
-        setRegName(""); setRegPass(""); setRegPassConfirm("");
+        setGeneratedId(res.id || regEmpId.trim().toUpperCase());
+        setRegEmpId(""); setRegName(""); setRegPass(""); setRegPassConfirm("");
       } else {
         setError(res.error || "Registration failed.");
       }
@@ -107,28 +109,53 @@ export function Login() {
     : "from-blue-600 via-indigo-600 to-cyan-500";
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50">
-      {/* Glow orbs */}
-      <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 translate-y-1/2 w-[500px] h-[500px] bg-cyan-400/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-slate-50 selection:bg-blue-600 selection:text-white">
+      {/* Minimalist Studio White background & soft translucent overlay */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75 mix-blend-multiply filter contrast-105"
+        style={{ backgroundImage: `url(${APP_CONFIG.LOGIN_BG_PATH})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 via-white/70 to-slate-100/85" />
 
-      <div className="relative w-full max-w-md my-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 shadow-xl shadow-blue-500/20 mb-4 border border-white ring-4 ring-blue-500/10">
-            <Activity className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">{APP_CONFIG.APP_NAME}</h1>
-          <p className="text-xs font-semibold text-slate-500 mt-1.5 tracking-wide">
-            Employee Daily Work Reporting System
+      {/* Soft studio ambient glow */}
+      <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] bg-blue-300/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 translate-y-1/2 w-[450px] h-[450px] bg-cyan-300/15 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="relative w-full max-w-md my-8 z-10">
+        {/* Company Header & Brand Logo */}
+        <div className="text-center mb-6">
+          <a
+            href={APP_CONFIG.COMPANY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block group"
+            title="Visit CodeThrive Infotech"
+          >
+            <div className="relative inline-block">
+              <img
+                src={APP_CONFIG.LOGO_PATH}
+                alt="CodeThrive Infotech Logo"
+                className="relative h-20 w-auto mx-auto rounded-2xl object-contain bg-white border border-slate-200/90 p-2.5 shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 ring-4 ring-slate-100/80"
+              />
+            </div>
+          </a>
+
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight mt-4">
+            {APP_CONFIG.APP_NAME}
+          </h1>
+          <p className="text-xs font-bold text-slate-500 mt-1 tracking-wide">
+            Employee Work Tracking System
+          </p>
+          <p className="text-[11px] font-semibold text-slate-400 mt-0.5">
+            Created by <a href={APP_CONFIG.COMPANY_URL} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-bold">{APP_CONFIG.COMPANY_NAME}</a>
           </p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white border border-slate-200/90 rounded-3xl p-7 md:p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden">
+        {/* Login Card */}
+        <div className="bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl p-7 md:p-8 shadow-xl shadow-slate-200/60 relative overflow-hidden text-slate-900">
 
-          {/* Top accent line */}
-          <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${mode === "register" ? "from-emerald-500 via-teal-500 to-cyan-500" : accentGradient}`} />
+          {/* Top accent gradient line */}
+          <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${mode === "register" ? "from-emerald-500 via-teal-400 to-cyan-500" : accentGradient}`} />
 
           {/* ── SIGN IN MODE ── */}
           {mode === "login" && (
@@ -136,15 +163,13 @@ export function Login() {
               {/* Role tabs */}
               <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-slate-100 rounded-2xl border border-slate-200 mb-6">
                 <button type="button" onClick={() => handleRoleChange("EMPLOYEE")}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 ${
-                    role === "EMPLOYEE" ? "bg-white text-blue-700 shadow-md border border-slate-200/60" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
-                  }`}>
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 ${role === "EMPLOYEE" ? "bg-white text-blue-700 shadow-md border border-slate-200/80" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                    }`}>
                   <User className="w-3.5 h-3.5" /> Employee Login
                 </button>
                 <button type="button" onClick={() => handleRoleChange("ADMIN")}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 ${
-                    role === "ADMIN" ? "bg-white text-amber-700 shadow-md border border-slate-200/60" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
-                  }`}>
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 ${role === "ADMIN" ? "bg-white text-amber-700 shadow-md border border-slate-200/80" : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                    }`}>
                   <Shield className="w-3.5 h-3.5" /> Admin Portal
                 </button>
               </div>
@@ -160,7 +185,7 @@ export function Login() {
                 {/* Username — Employee only */}
                 {role === "EMPLOYEE" && (
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-2">
                       Employee ID or Name
                     </label>
                     <div className="relative flex items-center">
@@ -168,30 +193,29 @@ export function Login() {
                       <input type="text" required value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         placeholder="e.g. EMP001 or your name"
-                        className="w-full glass-input pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400" />
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                     </div>
                   </div>
                 )}
 
                 {/* Password */}
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Password</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-2">Password</label>
                   <div className="relative flex items-center">
                     <div className="absolute left-4 pointer-events-none text-slate-400"><Lock className="w-4 h-4" /></div>
                     <input type="password" required value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full glass-input pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                   </div>
                 </div>
 
                 {/* Sign In button */}
                 <button type="submit" disabled={loading}
-                  className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
-                    role === "ADMIN"
-                      ? "bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:brightness-105"
-                      : "bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:brightness-105"
-                  }`}>
+                  className={`w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${role === "ADMIN"
+                      ? "bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:brightness-105 shadow-amber-500/20"
+                      : "bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:brightness-105 shadow-blue-500/20"
+                    }`}>
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
@@ -240,9 +264,9 @@ export function Login() {
                   </div>
                   {generatedId && (
                     <div className="flex items-center gap-2 mt-1 p-2.5 bg-emerald-100 rounded-lg border border-emerald-200">
-                      <span className="text-emerald-700 font-medium">Your Employee ID:</span>
-                      <span className="font-black text-emerald-900 font-mono text-sm tracking-widest">{generatedId}</span>
-                      <span className="text-emerald-600 font-medium text-[10px]">(use this to sign in)</span>
+                      <span className="text-emerald-800 font-medium">Your Employee ID:</span>
+                      <span className="font-black text-emerald-950 font-mono text-sm tracking-widest">{generatedId}</span>
+                      <span className="text-emerald-700 font-medium text-[10px]">(use this to sign in)</span>
                     </div>
                   )}
                   <button onClick={switchToLogin}
@@ -260,22 +284,36 @@ export function Login() {
               )}
 
               <form onSubmit={handleRegister} className="space-y-4">
+                {/* Employee ID */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Employee ID <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <div className="absolute left-4 pointer-events-none text-slate-400"><User className="w-4 h-4" /></div>
+                    <input type="text" required value={regEmpId}
+                      onChange={(e) => setRegEmpId(e.target.value)}
+                      placeholder="e.g. EMP001 or 1001"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 uppercase focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" />
+                  </div>
+                </div>
+
                 {/* Full Name */}
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                     Full Name <span className="text-rose-500">*</span>
                   </label>
                   <input type="text" required value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Your full name"
-                    className="w-full glass-input px-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400" />
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" />
                 </div>
 
                 {/* Department */}
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Department</label>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">Department</label>
                   <select value={regDept} onChange={(e) => setRegDept(e.target.value)}
-                    className="w-full glass-input px-4 py-3 text-sm text-slate-800 font-semibold bg-white">
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 font-semibold focus:bg-white focus:outline-none focus:border-emerald-500">
                     <option value="IT">IT</option>
                     <option value="Non-IT">Non-IT</option>
                     <option value="Marketing">Marketing</option>
@@ -286,7 +324,7 @@ export function Login() {
 
                 {/* Password */}
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                     Password <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative flex items-center">
@@ -294,13 +332,13 @@ export function Login() {
                     <input type="password" required value={regPass}
                       onChange={(e) => setRegPass(e.target.value)}
                       placeholder="Min. 4 characters"
-                      className="w-full glass-input pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20" />
                   </div>
                 </div>
 
                 {/* Confirm Password */}
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                     Confirm Password <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative flex items-center">
@@ -308,9 +346,8 @@ export function Login() {
                     <input type="password" required value={regPassConfirm}
                       onChange={(e) => setRegPassConfirm(e.target.value)}
                       placeholder="Re-enter password"
-                      className={`w-full glass-input pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 ${
-                        regPassConfirm && regPass !== regPassConfirm ? "border-rose-400" : ""
-                      }`} />
+                      className={`w-full bg-slate-50 border rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 ${regPassConfirm && regPass !== regPassConfirm ? "border-rose-400 focus:ring-rose-500/20" : "border-slate-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        }`} />
                   </div>
                   {regPassConfirm && regPass !== regPassConfirm && (
                     <p className="text-[11px] text-rose-600 font-semibold mt-1">Passwords do not match</p>
@@ -319,7 +356,7 @@ export function Login() {
 
                 {/* Register button */}
                 <button type="submit" disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-105">
+                  className="w-full py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-105 shadow-emerald-500/20">
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
@@ -331,9 +368,18 @@ export function Login() {
           )}
         </div>
 
-        <p className="text-center text-xs text-slate-500 mt-6 font-medium">
-          Secured Cloud Storage &bull; {APP_CONFIG.COMPANY_NAME}
-        </p>
+        {/* Footer Credit & Link */}
+        <div className="text-center mt-6">
+          <a
+            href={APP_CONFIG.COMPANY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 border border-slate-200 shadow-sm hover:border-blue-300 text-xs text-slate-600 hover:text-blue-700 transition-all duration-200 group"
+          >
+            <span>Software Created by <strong className="text-slate-900 group-hover:text-blue-700 font-bold">{APP_CONFIG.COMPANY_NAME}</strong></span>
+            <span className="text-blue-600 text-[10px] font-extrabold tracking-wider uppercase">&bull; codethriveinfotech.in</span>
+          </a>
+        </div>
       </div>
     </div>
   );

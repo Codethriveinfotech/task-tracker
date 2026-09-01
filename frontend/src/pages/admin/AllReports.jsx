@@ -17,6 +17,7 @@ import {
 export function AllReports({ onShowToast }) {
   const { user: adminUser, token } = useAuth();
   const [reports, setReports] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Filter States
@@ -33,6 +34,20 @@ export function AllReports({ onShowToast }) {
   const [editRemarks, setEditRemarks] = useState("");
   const [editReason, setEditReason] = useState("");
   const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    async function loadEmployees() {
+      try {
+        const res = await apiService.getEmployeesList(token);
+        if (res.success && res.employees) {
+          setEmployees(res.employees);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (token) loadEmployees();
+  }, [token]);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -133,8 +148,8 @@ export function AllReports({ onShowToast }) {
               onChange={(e) => setSelectedEmployee(e.target.value)}
               className="w-full glass-input pl-10 pr-3 py-2.5 text-xs bg-white text-slate-900 font-medium"
             >
-              <option value="ALL">All Employees (6)</option>
-              {APP_CONFIG.DEFAULT_EMPLOYEES.map((emp) => (
+              <option value="ALL">All Employees ({employees.length})</option>
+              {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
                   {emp.name} ({emp.department})
                 </option>

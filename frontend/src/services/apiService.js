@@ -15,91 +15,12 @@ export function getTodayDateStr() {
   return `${year}-${month}-${day}`;
 }
 
-// Seed initial mock database if empty
+// Initialize database storage (clean slate, no sample reports)
 function initMockDatabase() {
   const existing = localStorage.getItem(MOCK_STORAGE_KEY);
-  if (!existing) {
-    const today = getTodayDateStr();
-    const mockReports = [
-      {
-        id: "EMP001_101",
-        employeeId: "EMP001",
-        employeeName: "Employee 1",
-        department: "IT",
-        sheetName: "Employee 1",
-        rowIndex: 2,
-        timestamp: `${today} 09:30:00`,
-        date: today,
-        day: "Thursday",
-        workDone: "Completed frontend UI components & setup React router layout for the daily reporting portal.",
-        status: "Completed",
-        remarks: "All tasks completed ahead of time.",
-        auditLog: ""
-      },
-      {
-        id: "EMP002_102",
-        employeeId: "EMP002",
-        employeeName: "Employee 2",
-        department: "IT",
-        sheetName: "Employee 2",
-        rowIndex: 2,
-        timestamp: `${today} 10:15:00`,
-        date: today,
-        day: "Thursday",
-        workDone: "API integration testing with Google Apps Script backend and error scenario handling.",
-        status: "In Progress",
-        remarks: "Testing pending CORS configuration.",
-        auditLog: ""
-      },
-      {
-        id: "EMP004_103",
-        employeeId: "EMP004",
-        employeeName: "Employee 4",
-        department: "IT",
-        sheetName: "Employee 4",
-        rowIndex: 2,
-        timestamp: `${today} 09:00:00`,
-        date: today,
-        day: "Thursday",
-        workDone: "Database index optimization and spreadsheet row schema validation.",
-        status: "Completed",
-        remarks: "—",
-        auditLog: ""
-      },
-      {
-        id: "EMP006_104",
-        employeeId: "EMP006",
-        employeeName: "Employee 6",
-        department: "Non-IT",
-        sheetName: "Employee 6",
-        rowIndex: 2,
-        timestamp: `${today} 08:45:00`,
-        date: today,
-        day: "Thursday",
-        workDone: "Monthly inventory count and documentation review for facility logistics.",
-        status: "Completed",
-        remarks: "—",
-        auditLog: ""
-      },
-      // Historic record from yesterday
-      {
-        id: "EMP001_100",
-        employeeId: "EMP001",
-        employeeName: "Employee 1",
-        department: "IT",
-        sheetName: "Employee 1",
-        rowIndex: 1,
-        timestamp: "2026-08-26 17:30:00",
-        date: "2026-08-26",
-        day: "Wednesday",
-        workDone: "Designed mock wireframes and responsive CSS color theme variables.",
-        status: "Completed",
-        remarks: "Initial approval received.",
-        auditLog: ""
-      }
-    ];
-
-    localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(mockReports));
+  if (!existing || existing.includes("EMP001_101")) {
+    // Clear sample seed reports so all data comes strictly from real submissions / DB
+    localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify([]));
   }
 }
 
@@ -137,23 +58,24 @@ function saveMockEmployees(employees) {
 }
 
 /**
- * Generic API Call Dispatcher
+ * Generic API Call Dispatcher - Fetches from Apps Script backend / DB API
  */
 async function callApi(action, payload = {}, token = null) {
-  const url = APP_CONFIG.APPS_SCRIPT_URL;
+  const url = APP_CONFIG.APPS_SCRIPT_URL || "/api";
 
-  // If live Apps Script URL is set, call backend
   if (url && url.trim() !== "") {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, token, ...payload })
       });
-      const data = await response.json();
-      return data;
+      if (response.ok) {
+        const data = await response.json();
+        if (data) return data;
+      }
     } catch (err) {
-      console.warn("Apps Script API fetch failed, falling back to mock mode:", err);
+      console.warn("Backend API call failed, falling back to clean local storage DB:", err);
     }
   }
 
@@ -335,7 +257,8 @@ async function callApi(action, payload = {}, token = null) {
       }
     });
 
-    const employeeTodayStatus = APP_CONFIG.DEFAULT_EMPLOYEES.map((emp) => {
+    const activeEmployees = getMockEmployees();
+    const employeeTodayStatus = activeEmployees.map((emp) => {
       const rep = todayReports.find((r) => r.employeeId === emp.id);
       return {
         employeeId: emp.id,
@@ -350,9 +273,9 @@ async function callApi(action, payload = {}, token = null) {
       success: true,
       reports: filtered.sort((a, b) => new Date(b.date) - new Date(a.date)),
       summary: {
-        totalEmployees: APP_CONFIG.DEFAULT_EMPLOYEES.length,
+        totalEmployees: activeEmployees.length,
         submittedToday: submittedEmpIds.size,
-        pendingToday: APP_CONFIG.DEFAULT_EMPLOYEES.length - submittedEmpIds.size,
+        pendingToday: activeEmployees.length - submittedEmpIds.size,
         statusCountsToday,
         employeeTodayStatus
       }
@@ -394,7 +317,7 @@ async function callApi(action, payload = {}, token = null) {
     const yearMonth = payload.yearMonth || getTodayDateStr().substring(0, 7);
     const reports = getMockReports();
 
-    const summaries = APP_CONFIG.DEFAULT_EMPLOYEES.map((emp) => {
+    const summaries = getMockEmployees().map((emp) => {
       const empReports = reports.filter(
         (r) => r.employeeId === emp.id && r.date.substring(0, 7) === yearMonth
       );
@@ -461,19 +384,18 @@ async function callApi(action, payload = {}, token = null) {
   }
 
   if (action === "registerEmployee") {
-    const { name, department, password } = payload;
-    if (!name || !department || !password) {
-      return { success: false, error: "Name, Department, and Password are required." };
+    const { id, name, department, password } = payload;
+    if (!id || !name || !department || !password) {
+      return { success: false, error: "Employee ID, Name, Department, and Password are required." };
     }
     const employees = getMockEmployees();
-    const nums = employees
-      .map(e => parseInt(e.id.replace(/^EMP0*/i, ""), 10))
-      .filter(n => !isNaN(n));
-    const nextNum = nums.length > 0 ? Math.max(...nums) + 1 : 1;
-    const newId = `EMP${String(nextNum).padStart(3, "0")}`;
-    employees.push({ id: newId, name: name.trim(), department: department.trim(), role: "EMPLOYEE", password: password.trim() });
+    const cleanId = id.trim().toUpperCase();
+    if (employees.some(e => e.id.toUpperCase() === cleanId)) {
+      return { success: false, error: `Employee ID '${cleanId}' already exists.` };
+    }
+    employees.push({ id: cleanId, name: name.trim(), department: department.trim(), role: "EMPLOYEE", password: password.trim() });
     saveMockEmployees(employees);
-    return { success: true, message: "Account created successfully! You can now sign in.", id: newId };
+    return { success: true, message: "Account created successfully! You can now sign in.", id: cleanId };
   }
 
   return { success: false, error: "Unsupported mock action." };

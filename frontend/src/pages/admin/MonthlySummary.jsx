@@ -66,8 +66,12 @@ export function MonthlySummary({ onShowToast }) {
       const summaryWs = XLSX.utils.json_to_sheet(summaryRows);
       XLSX.utils.book_append_sheet(wb, summaryWs, "Monthly Summary");
 
-      // Tabs 2-7: 6 Separate Employee Sheets
-      APP_CONFIG.DEFAULT_EMPLOYEES.forEach((emp) => {
+      // Fetch employees list dynamically from database
+      const empRes = await apiService.getEmployeesList(token);
+      const employeesList = empRes.employees || [];
+
+      // Separate Employee Sheets
+      employeesList.forEach((emp) => {
         const empReports = allMonthReports.filter((r) => r.employeeId === emp.id);
         const rows = empReports.map((r) => ({
           "Timestamp": r.timestamp,

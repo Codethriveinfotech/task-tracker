@@ -5,19 +5,16 @@
 export const APP_CONFIG = {
   APP_NAME: "WorkPulse",
   COMPANY_NAME: "CodeThrive Infotech",
+  COMPANY_URL: "https://codethriveinfotech.in/",
+  TAGLINE: "Progress. Cultivate. Innovate.",
+  LOGO_PATH: "/codethrive_logo.png",
+  LOGIN_BG_PATH: "/codethrive_simple_bg.png",
 
   // Google Apps Script API URL from environment variable or window config
   APPS_SCRIPT_URL: import.meta.env.VITE_APPS_SCRIPT_URL || "",
 
-  // Default Employee Roster (4 IT, 2 Non-IT)
-  DEFAULT_EMPLOYEES: [
-    { id: "EMP001", name: "Employee 1", department: "IT", role: "EMPLOYEE" },
-    { id: "EMP002", name: "Employee 2", department: "IT", role: "EMPLOYEE" },
-    { id: "EMP003", name: "Employee 3", department: "IT", role: "EMPLOYEE" },
-    { id: "EMP004", name: "Employee 4", department: "IT", role: "EMPLOYEE" },
-    { id: "EMP005", name: "Employee 5", department: "Non-IT", role: "EMPLOYEE" },
-    { id: "EMP006", name: "Employee 6", department: "Non-IT", role: "EMPLOYEE" }
-  ],
+  // Default Employee Roster (Dynamic from Database)
+  DEFAULT_EMPLOYEES: [],
 
   // Status Configurations & Badges
   STATUSES: [

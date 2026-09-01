@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
+import { APP_CONFIG } from "../config/appConfig";
 import {
   LayoutDashboard,
   FilePlus,
@@ -7,7 +8,8 @@ import {
   FileText,
   CalendarCheck,
   Settings,
-  LogOut
+  LogOut,
+  ExternalLink
 } from "lucide-react";
 
 export function Sidebar({ activeTab, setActiveTab }) {
@@ -57,7 +59,7 @@ export function Sidebar({ activeTab, setActiveTab }) {
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-slate-100">
+      <div className="pt-4 space-y-3 border-t border-slate-100">
         <button
           onClick={logout}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl font-bold text-sm text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all"
@@ -65,6 +67,31 @@ export function Sidebar({ activeTab, setActiveTab }) {
           <LogOut className="w-4 h-4 text-rose-600" />
           Logout
         </button>
+
+        {/* CodeThrive Company Credit Card */}
+        <a
+          href={APP_CONFIG.COMPANY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-3 rounded-2xl bg-slate-900 text-white hover:bg-slate-950 transition-colors border border-slate-800 shadow-sm group"
+        >
+          <div className="flex items-center gap-2.5">
+            <img
+              src={APP_CONFIG.LOGO_PATH}
+              alt="CodeThrive Logo"
+              className="w-8 h-8 rounded-lg object-contain bg-slate-950 p-0.5 border border-slate-700 shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] font-extrabold text-slate-200 group-hover:text-cyan-300 truncate flex items-center gap-1">
+                <span>{APP_CONFIG.COMPANY_NAME}</span>
+                <ExternalLink className="w-2.5 h-2.5 shrink-0 opacity-70" />
+              </div>
+              <div className="text-[9px] text-emerald-400 font-semibold truncate">
+                {APP_CONFIG.TAGLINE}
+              </div>
+            </div>
+          </div>
+        </a>
       </div>
     </aside>
   );
