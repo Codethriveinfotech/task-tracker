@@ -42,11 +42,13 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     let result;
     switch (data.action) {
-      case "submitReport":      result = submitReport(data);      break;
+      case "submitReport":
+      case "appendRow":         result = submitReport(data);      break;
       case "getTodayReport":    result = getTodayReport(data);    break;
       case "getMyReports":      result = getMyReports(data);      break;
       case "getAllReports":     result = getAllReports(data);     break;
-      case "updateReport":      result = updateReport(data);      break;
+      case "updateReport":
+      case "updateRow":         result = updateReport(data);      break;
       case "getMonthlySummary": result = getMonthlySummary(data); break;
       default: result = { success: false, error: "Unknown action: " + data.action };
     }
@@ -62,9 +64,22 @@ function doPost(e) {
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 function getOrCreateMonthTab(dateStr) {
-  const ss   = SpreadsheetApp.getActiveSpreadsheet();
-  const d    = new Date(dateStr);
-  const name = d.toLocaleString("en-US", { month: "short", year: "numeric" });
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // Safely extract Year & Month from YYYY-MM-DD string to avoid UTC timezone rollback
+  let year, monthNum;
+  if (dateStr && typeof dateStr === "string" && dateStr.includes("-")) {
+    const parts = dateStr.split("-");
+    year = parts[0];
+    monthNum = parseInt(parts[1], 10);
+  } else {
+    const d = new Date();
+    year = d.getFullYear();
+    monthNum = d.getMonth() + 1;
+  }
+
+  const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+  const name = monthNamesShort[monthNum - 1] + " " + year; // e.g. "Sept 2026"
 
   let sheet = ss.getSheetByName(name);
   if (!sheet) {
@@ -114,13 +129,12 @@ function getAllRows() {
 // ─── ACTIONS ───────────────────────────────────────────────────────────────
 
 function submitReport(data) {
-  const today = new Date().toISOString().substring(0, 10);
+  const today = data.date || new Date().toISOString().substring(0, 10);
   const sheet = getOrCreateMonthTab(today);
   const last  = sheet.getLastRow();
 
   // Duplicate check
   if (last >= 2) {
-    const rows = sheet.getRange(2, COLS.EMP_ID, last - 1, 2).getValues(); // [empId, date] — wait, wrong
     const dateCol = sheet.getRange(2, COLS.DATE,   last - 1, 1).getValues();
     const empCol  = sheet.getRange(2, COLS.EMP_ID, last - 1, 1).getValues();
     for (let i = 0; i < dateCol.length; i++) {
@@ -132,14 +146,14 @@ function submitReport(data) {
 
   const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const now  = new Date();
-  const ts   = now.toISOString().replace("T", " ").substring(0, 19);
-  const id   = data.employeeId + "_" + now.getTime();
+  const ts   = data.timestamp || now.toISOString().replace("T", " ").substring(0, 19);
+  const id   = data.id || (data.employeeId + "_" + now.getTime());
 
   const row = [
-    ts, today, DAYS[now.getDay()],
+    ts, today, data.day || DAYS[now.getDay()],
     data.employeeId, data.employeeName, data.department,
     data.workDone, data.status || "Completed", data.remarks || "—",
-    id, ""
+    id, data.auditLog || ""
   ];
   sheet.appendRow(row);
   return { success: true, message: "Daily work report submitted successfully!", record: rowToObj(row) };
