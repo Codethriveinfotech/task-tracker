@@ -135,7 +135,7 @@ export function Login() {
               <img
                 src={APP_CONFIG.LOGO_PATH}
                 alt="CodeThrive Infotech Logo"
-                className="relative h-20 w-auto mx-auto rounded-2xl object-contain bg-white border border-slate-200/90 p-2.5 shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 ring-4 ring-slate-100/80"
+                className="relative h-28 w-auto mx-auto rounded-2xl object-contain bg-white border border-slate-200/90 p-3 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 ring-4 ring-slate-100/80"
               />
             </div>
           </a>

@@ -79,7 +79,7 @@ export function Sidebar({ activeTab, setActiveTab }) {
             <img
               src={APP_CONFIG.LOGO_PATH}
               alt="CodeThrive Logo"
-              className="w-8 h-8 rounded-lg object-contain bg-slate-950 p-0.5 border border-slate-700 shrink-0"
+              className="w-11 h-11 rounded-xl object-contain bg-slate-950 p-1 border border-slate-700 shrink-0"
             />
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-extrabold text-slate-200 group-hover:text-cyan-300 truncate flex items-center gap-1">

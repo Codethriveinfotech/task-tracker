@@ -27,7 +27,7 @@ export function Navbar() {
           <img
             src={APP_CONFIG.LOGO_PATH}
             alt="CodeThrive Infotech Logo"
-            className="h-10 w-auto rounded-xl object-contain bg-slate-900 border border-slate-700/60 p-1 shadow-md group-hover:scale-105 transition-transform"
+            className="h-16 w-auto rounded-xl object-contain bg-slate-900 border border-slate-700/60 p-1.5 shadow-md group-hover:scale-105 transition-transform"
           />
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
