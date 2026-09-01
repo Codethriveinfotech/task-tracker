@@ -10,6 +10,9 @@ node_modules/
 
 # Databases
 *.db
+**/*.db
+workpulse.db
+backend/workpulse.db
 *.db-journal
 *.sqlite
 *.sqlite3
