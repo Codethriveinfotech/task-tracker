@@ -42,6 +42,17 @@ export function AdminDashboard({ onNavigate }) {
     fetchDashboardData();
   }, [token]);
 
+  // Compute live department breakdown dynamically from DB data
+  const deptCounts = summary?.employeeTodayStatus?.reduce((acc, emp) => {
+    const dept = emp.department || "General";
+    acc[dept] = (acc[dept] || 0) + 1;
+    return acc;
+  }, {}) || {};
+
+  const deptSubtext = Object.entries(deptCounts).length > 0
+    ? Object.entries(deptCounts).map(([dept, count]) => `${count} ${dept}`).join(" • ")
+    : "Live Database Accounts";
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -52,7 +63,9 @@ export function AdminDashboard({ onNavigate }) {
             Executive Admin Control Center
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900">Company Overview Dashboard</h2>
-          <p className="text-xs text-slate-500 mt-1 font-medium">Real-time daily work reporting analytics for all 6 employees.</p>
+          <p className="text-xs text-slate-500 mt-1 font-medium">
+            Real-time daily work reporting analytics for all registered employees.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -83,9 +96,9 @@ export function AdminDashboard({ onNavigate }) {
             </div>
           </div>
           <div className="text-3xl font-black text-slate-900">
-            {summary ? summary.totalEmployees : 6}
+            {loading ? "..." : (summary?.totalEmployees ?? 0)}
           </div>
-          <div className="text-[11px] text-slate-500 font-medium">4 IT Employees &bull; 2 Non-IT Employees</div>
+          <div className="text-[11px] text-slate-500 font-medium">{loading ? "Fetching live counts..." : deptSubtext}</div>
         </div>
 
         {/* Reports Submitted Today */}
