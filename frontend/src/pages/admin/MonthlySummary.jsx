@@ -38,20 +38,31 @@ export function MonthlySummary({ onShowToast }) {
     fetchMonthly();
   }, [token, selectedMonth]);
 
-  // Handle Export to Excel maintaining 6-employee sheet structure
+  // Handle Export to Excel maintaining Monthly Summary, Month Sheet (e.g. Sept 2026), & Employee sheets
   const handleExportExcel = async () => {
     setExporting(true);
     try {
+      // Compute start and end date for the selected month accurately
+      const [yearStr, monthStr] = selectedMonth.split("-");
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
+      const lastDay = new Date(year, month, 0).getDate();
+      const lastDayStr = String(lastDay).padStart(2, '0');
+
+      const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+      const monthShort = monthNamesShort[month - 1] || "Month";
+      const monthSheetName = `${monthShort} ${year}`; // e.g. "Sept 2026"
+
       // Fetch all reports for the selected month from API
       const res = await apiService.getAllReports(token, {
         fromDate: `${selectedMonth}-01`,
-        toDate: `${selectedMonth}-31`
+        toDate: `${selectedMonth}-${lastDayStr}`
       });
 
       const allMonthReports = res.reports || [];
       const wb = XLSX.utils.book_new();
 
-      // Tab 1: Executive Monthly Summary
+      // Tab 1: Executive Monthly Summary Matrix
       const summaryRows = summaries.map((s) => ({
         "Employee ID": s.employeeId,
         "Employee Name": s.employeeName,
@@ -66,11 +77,38 @@ export function MonthlySummary({ onShowToast }) {
       const summaryWs = XLSX.utils.json_to_sheet(summaryRows);
       XLSX.utils.book_append_sheet(wb, summaryWs, "Monthly Summary");
 
+      // Tab 2: Dedicated Month Sheet (e.g., "Sept 2026") - All activities for the month
+      const monthRows = allMonthReports.map((r) => ({
+        "Employee ID": r.employeeId,
+        "Employee Name": r.employeeName,
+        "Department": r.department,
+        "Date": r.date,
+        "Day": r.day,
+        "Work Done / Activities": r.workDone,
+        "Status": r.status,
+        "Issues / Remarks": r.remarks,
+        "Timestamp": r.timestamp,
+        "Audit Log": r.auditLog
+      }));
+      const monthWs = XLSX.utils.json_to_sheet(monthRows.length > 0 ? monthRows : [{
+        "Employee ID": "—",
+        "Employee Name": "—",
+        "Department": "—",
+        "Date": "—",
+        "Day": "—",
+        "Work Done / Activities": `No submissions recorded for ${monthSheetName}`,
+        "Status": "—",
+        "Issues / Remarks": "—",
+        "Timestamp": "—",
+        "Audit Log": "—"
+      }]);
+      XLSX.utils.book_append_sheet(wb, monthWs, monthSheetName);
+
       // Fetch employees list dynamically from database
       const empRes = await apiService.getEmployeesList(token);
       const employeesList = empRes.employees || [];
 
-      // Separate Employee Sheets
+      // Separate Individual Employee Sheets
       employeesList.forEach((emp) => {
         const empReports = allMonthReports.filter((r) => r.employeeId === emp.id);
         const rows = empReports.map((r) => ({
@@ -86,7 +124,7 @@ export function MonthlySummary({ onShowToast }) {
           "Timestamp": "—",
           "Date": "—",
           "Day": "—",
-          "Work Done / Activities": "No submissions for this month",
+          "Work Done / Activities": `No submissions for ${monthSheetName}`,
           "Status": "—",
           "Issues / Remarks": "—",
           "Audit Log": "—"
@@ -99,7 +137,7 @@ export function MonthlySummary({ onShowToast }) {
       XLSX.writeFile(wb, fileName);
 
       if (onShowToast) {
-        onShowToast(`Exported ${fileName} with 6 employee sheet tabs!`, "success");
+        onShowToast(`Exported ${fileName} with '${monthSheetName}' month tab!`, "success");
       }
     } catch (err) {
       console.error(err);
