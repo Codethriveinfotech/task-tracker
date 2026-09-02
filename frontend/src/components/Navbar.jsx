@@ -1,9 +1,9 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
-import { LogOut, Calendar, Activity } from "lucide-react";
+import { LogOut, Calendar, Menu, X } from "lucide-react";
 import { APP_CONFIG } from "../config/appConfig";
 
-export function Navbar() {
+export function Navbar({ isMobileOpen, setIsMobileOpen }) {
   const { user, logout } = useAuth();
 
   const formattedDate = new Date().toLocaleDateString("en-GB", {
@@ -16,31 +16,47 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/90 px-4 lg:px-8 py-3.5 shadow-xs">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Brand Logo */}
-        <a
-          href={APP_CONFIG.COMPANY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 group"
-          title="Created by CodeThrive Infotech - Visit Website"
-        >
-          <img
-            src={APP_CONFIG.LOGO_PATH}
-            alt="CodeThrive Infotech Logo"
-            className="h-10 w-auto rounded-xl object-contain bg-slate-900 border border-slate-700/60 p-1 shadow-md group-hover:scale-105 transition-transform"
-          />
-          <div>
-            <h1 className="text-lg font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-              {APP_CONFIG.APP_NAME}
-            </h1>
-            <p className="text-[11px] text-slate-500 font-semibold tracking-wide flex items-center gap-1">
-              <span>{APP_CONFIG.COMPANY_NAME}</span>
-              <span className="text-[9px] text-emerald-600 font-bold px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200">
-                Official
-              </span>
-            </p>
-          </div>
-        </a>
+        {/* Brand Logo & Mobile Toggle */}
+        <div className="flex items-center gap-3">
+          {user && (
+            <button
+              onClick={() => setIsMobileOpen && setIsMobileOpen(!isMobileOpen)}
+              className="md:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all flex items-center justify-center"
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMobileOpen ? (
+                <X className="w-5 h-5 text-slate-900" />
+              ) : (
+                <Menu className="w-5 h-5 text-slate-900" />
+              )}
+            </button>
+          )}
+
+          <a
+            href={APP_CONFIG.COMPANY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 group"
+            title="Created by CodeThrive Infotech - Visit Website"
+          >
+            <img
+              src={APP_CONFIG.LOGO_PATH}
+              alt="CodeThrive Infotech Logo"
+              className="h-10 w-auto rounded-xl object-contain bg-slate-900 border border-slate-700/60 p-1 shadow-md group-hover:scale-105 transition-transform"
+            />
+            <div>
+              <h1 className="text-lg font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                {APP_CONFIG.APP_NAME}
+              </h1>
+              <p className="text-[11px] text-slate-500 font-semibold tracking-wide flex items-center gap-1">
+                <span>{APP_CONFIG.COMPANY_NAME}</span>
+                <span className="text-[9px] text-emerald-600 font-bold px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200">
+                  Official
+                </span>
+              </p>
+            </div>
+          </a>
+        </div>
 
         {/* Right Controls */}
         <div className="flex items-center gap-4">

@@ -20,6 +20,7 @@ function MainContent() {
   const { isAuthenticated, isEmployee, isAdmin, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("");
   const [toast, setToast] = useState(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Set default active tab based on role once logged in
   React.useEffect(() => {
@@ -77,10 +78,15 @@ function MainContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
+      <Navbar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
 
       <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 md:p-6 gap-6">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isMobileOpen={isMobileOpen}
+          setIsMobileOpen={setIsMobileOpen}
+        />
 
         <main className="flex-1 min-w-0">
           {renderActiveView()}
