@@ -10,8 +10,7 @@ const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle PostgreSQL client', err);
-  process.exit(-1);
+  console.warn('PostgreSQL client pool notice:', err.message);
 });
 
 // Initialize database schema
